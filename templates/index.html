@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Painel de Controle{% endblock %}
+
+{% block conteudo %}
+
+{# ===== CABEÇALHO DA PÁGINA ===== #}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 mb-0">
+        <i class="bi bi-speedometer2 text-primary"></i> Painel de Controle
+    </h1>
+    <a href="{{ url_for('main.adicionar_produto') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Novo Produto
+    </a>
+</div>
+
+{# ===== CARDS DE MÉTRICAS ===== #}
+{# O sistema de grid do Bootstrap usa 12 colunas. col-md-4 = 4/12 = 1/3 da tela #}
+<div class="row g-4 mb-5">
+
+    {# Card 1: Total de Produtos #}
+    <div class="col-sm-6 col-lg-3">
+        <div class="card text-white bg-primary h-100 shadow">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-box-seam display-3"></i>
+                <div>
+                    <p class="card-title mb-1 opacity-75">Total de Produtos</p>
+                    <p class="display-5 fw-bold mb-0">{{ metricas.total_produtos }}</p>
+                </div>
+            </div>
+            <div class="card-footer border-0 bg-black bg-opacity-10">
+                <a href="{{ url_for('main.lista_produtos') }}" class="text-white text-decoration-none small">
+                    Ver todos os produtos <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {# Card 2: Alertas de Estoque Baixo — muda de cor conforme a situação #}
+    <div class="col-sm-6 col-lg-3">
+        <div class="card text-white h-100 shadow
+            {% if metricas.total_estoque_baixo > 0 %}bg-danger{% else %}bg-success{% endif %}">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-exclamation-triangle display-3"></i>
+                <div>
+                    <p class="card-title mb-1 opacity-75">Alertas de Estoque Baixo</p>
+                    <p class="display-5 fw-bold mb-0">{{ metricas.total_estoque_baixo }}</p>
+                </div>
+            </div>
+            <div class="card-footer border-0 bg-black bg-opacity-10">
+                <a href="{{ url_for('main.relatorio_estoque_baixo') }}" class="text-white text-decoration-none small">
+                    Ver relatório de estoque baixo <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {# Card 3: Valor Total do Estoque #}
+    <div class="col-sm-6 col-lg-3">
+        <div class="card text-white bg-success h-100 shadow">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-cash-coin display-3"></i>
+                <div>
+                    <p class="card-title mb-1 opacity-75">Valor Total em Estoque</p>
+                    {# O filtro "%.2f" formata o número com 2 casas decimais #}
+                    <p class="display-6 fw-bold mb-0">
+                        R$ {{ "%.2f"|format(metricas.valor_total_estoque) }}
+                    </p>
+                </div>
+            </div>
+            <div class="card-footer border-0 bg-black bg-opacity-10">
+                <span class="text-white small opacity-75">Soma de (preço × quantidade) de todos os itens</span>
+            </div>
+        </div>
+    </div>
+
+    {# Card 4: Lucro do mês (saídas: preço de venda − custo) #}
+    <div class="col-sm-6 col-lg-3">
+        <div class="card text-white bg-success h-100 shadow">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-graph-up-arrow display-3"></i>
+                <div>
+                    <p class="card-title mb-1 opacity-75">Lucro do Mês</p>
+                    <p class="display-6 fw-bold mb-0">
+                        R$ {{ "%.2f"|format(metricas.lucro_mes) }}
+                    </p>
+                </div>
+            </div>
+            <div class="card-footer border-0 bg-black bg-opacity-10">
+                <span class="text-white small opacity-75">
+                    Faturamento: R$ {{ "%.2f"|format(metricas.faturamento_mes) }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{# ===== GRÁFICOS ===== #}
+{% if not tem_movimentacao %}
+<div class="alert alert-info mb-4" role="alert">
+    <i class="bi bi-info-circle-fill"></i>
+    Ainda não há entradas ou saídas registradas. Os gráficos de movimentação e lucro
+    começam a ser preenchidos conforme você usar <strong>Movimentar Estoque</strong>
+    ou <strong>Importar Pedido</strong>.
+</div>
+{% endif %}
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <div class="card shadow h-100">
+            <div class="card-header"><i class="bi bi-bar-chart-fill"></i> Movimentação mensal (unidades)</div>
+            <div class="card-body"><div class="grafico-box"><canvas id="graficoMensal"></canvas></div></div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow h-100">
+            <div class="card-header"><i class="bi bi-cash-stack"></i> Faturamento e lucro por mês (R$)</div>
+            <div class="card-body"><div class="grafico-box"><canvas id="graficoLucro"></canvas></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-lg-7">
+        <div class="card shadow h-100">
+            <div class="card-header"><i class="bi bi-arrow-repeat"></i> Top 5 produtos mais movimentados</div>
+            <div class="card-body"><div class="grafico-box"><canvas id="graficoTop"></canvas></div></div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow h-100">
+            <div class="card-header"><i class="bi bi-pie-chart-fill"></i> Valor em estoque por produto</div>
+            <div class="card-body"><div class="grafico-box"><canvas id="graficoValor"></canvas></div></div>
+        </div>
+    </div>
+</div>
+
+{# ===== TABELA DE PRODUTOS CRÍTICOS ===== #}
+{% if produtos_criticos %}
+<div class="card border-danger shadow">
+    <div class="card-header bg-danger text-white fw-bold">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        Produtos com Estoque Crítico &mdash; Reposição Urgente
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Produto</th>
+                    <th>SKU</th>
+                    <th class="text-center">Qtd. Atual</th>
+                    <th>Ação Rápida</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for produto in produtos_criticos %}
+                <tr>
+                    <td class="fw-semibold">{{ produto['nome'] }}</td>
+                    <td><code>{{ produto['sku'] }}</code></td>
+                    <td class="text-center">
+                        <span class="badge bg-danger rounded-pill fs-6">
+                            {{ produto['quantidade'] }} un.
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('main.transacao_estoque', id=produto['id']) }}"
+                           class="btn btn-sm btn-success">
+                            <i class="bi bi-plus-circle"></i> Repor Estoque
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('main.relatorio_estoque_baixo') }}" class="small">
+            Ver relatório completo de estoque baixo <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
+{% else %}
+{# Estado positivo: nenhum produto com estoque baixo #}
+<div class="alert alert-success d-flex align-items-center gap-2" role="alert">
+    <i class="bi bi-check-circle-fill fs-4"></i>
+    <div>
+        <strong>Tudo certo!</strong> Nenhum produto com estoque abaixo do limite mínimo.
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{# Chart.js — biblioteca de gráficos via CDN (igual ao Bootstrap, sem instalar nada) #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    // Os dados vêm do Python (database.py) já em formato JSON graças ao filtro "tojson"
+    const mensal = {{ mensal|tojson }};
+    const top = {{ top|tojson }};
+    const valorProdutos = {{ valor_produtos|tojson }};
+
+    const BRANCO = '#ffffff', VERDE = '#198754', VERMELHO = '#dc3545';
+    const TONS = ['#ffffff', '#bdbdbd', '#8a8a8a', '#5c5c5c', '#3a3a3a', '#242424'];
+    const reais = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    // Tema escuro para todos os gráficos
+    Chart.defaults.color = '#cfcfcf';
+    Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.12)';
+    Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    Chart.defaults.maintainAspectRatio = false;
+
+    new Chart(document.getElementById('graficoMensal'), {
+        type: 'bar',
+        data: {
+            labels: mensal.meses,
+            datasets: [
+                {label: 'Entradas', data: mensal.entradas, backgroundColor: VERDE},
+                {label: 'Saídas', data: mensal.saidas, backgroundColor: VERMELHO}
+            ]
+        },
+        options: {
+            plugins: {legend: {position: 'bottom'}},
+            scales: {y: {beginAtZero: true, ticks: {precision: 0}}}
+        }
+    });
+
+    new Chart(document.getElementById('graficoLucro'), {
+        type: 'line',
+        data: {
+            labels: mensal.meses,
+            datasets: [
+                {label: 'Faturamento', data: mensal.faturamento, borderColor: BRANCO, backgroundColor: BRANCO, tension: 0.3},
+                {label: 'Lucro', data: mensal.lucro, borderColor: VERDE, backgroundColor: VERDE, tension: 0.3}
+            ]
+        },
+        options: {
+            plugins: {
+                legend: {position: 'bottom'},
+                tooltip: {callbacks: {label: (c) => c.dataset.label + ': ' + reais(c.parsed.y)}}
+            },
+            scales: {y: {beginAtZero: true, ticks: {callback: (v) => reais(v)}}}
+        }
+    });
+
+    new Chart(document.getElementById('graficoTop'), {
+        type: 'bar',
+        data: {
+            labels: top.nomes,
+            datasets: [{label: 'Unidades movimentadas', data: top.totais, backgroundColor: BRANCO}]
+        },
+        options: {
+            indexAxis: 'y',
+            plugins: {legend: {display: false}},
+            scales: {x: {beginAtZero: true, ticks: {precision: 0}}}
+        }
+    });
+
+    new Chart(document.getElementById('graficoValor'), {
+        type: 'doughnut',
+        data: {
+            labels: valorProdutos.nomes,
+            datasets: [{data: valorProdutos.valores, backgroundColor: TONS, borderColor: '#000', borderWidth: 2}]
+        },
+        options: {
+            plugins: {
+                legend: {position: 'bottom'},
+                tooltip: {callbacks: {label: (c) => c.label + ': ' + reais(c.parsed)}}
+            }
+        }
+    });
+</script>
+{% endblock %}

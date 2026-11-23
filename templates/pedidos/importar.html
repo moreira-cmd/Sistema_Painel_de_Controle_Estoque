@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Importar Pedido (PDF){% endblock %}
+
+{% block conteudo %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 mb-0">
+        <i class="bi bi-file-earmark-pdf text-primary"></i> Importar Pedido (PDF)
+    </h1>
+    <a href="{{ url_for('main.lista_produtos') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+</div>
+
+{# ===== ENVIO DO PDF ===== #}
+<div class="card shadow mb-4">
+    <div class="card-body p-4">
+        {# enctype="multipart/form-data" é obrigatório para enviar arquivos #}
+        <form method="POST" action="{{ url_for('main.importar_pedido') }}" enctype="multipart/form-data">
+            <label for="pdf" class="form-label fw-semibold">Arquivo PDF do pedido</label>
+            <div class="input-group">
+                <input type="file" class="form-control" id="pdf" name="pdf"
+                       accept="application/pdf,.pdf" required>
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-search"></i> Ler pedido
+                </button>
+            </div>
+            <div class="form-text">
+                O PDF precisa ter texto (não pode ser foto/escaneado), com uma linha por item contendo
+                o <strong>SKU</strong> do produto e a quantidade &mdash; por exemplo:
+                <code>LOTE01 3 un</code> ou <code>LOTE01 - Pó Preto - Qtd: 3</code>.
+                Nada é retirado do estoque antes de você conferir e confirmar.
+            </div>
+        </form>
+    </div>
+</div>
+
+{# ===== CONFERÊNCIA (só aparece depois de ler um PDF) ===== #}
+{% if itens is defined %}
+
+<div class="card shadow mb-4">
+    <div class="card-header">
+        <i class="bi bi-list-check"></i> Conferência &mdash; {{ arquivo_nome }}
+    </div>
+
+    {% if ja_importado %}
+    <div class="alert alert-warning m-3 mb-0" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        Esse mesmo PDF já foi importado em <strong>{{ ja_importado['data'] }}</strong>.
+        Para evitar baixa em duplicidade, a confirmação está bloqueada.
+    </div>
+    {% endif %}
+
+    {% if itens %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Produto</th>
+                    <th>SKU</th>
+                    <th class="text-center">Qtd. do pedido</th>
+                    <th class="text-center">Estoque atual</th>
+                    <th class="text-center">Estoque depois</th>
+                    <th>Situação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in itens %}
+                <tr>
+                    <td class="fw-semibold">{{ item.nome }}</td>
+                    <td><code>{{ item.sku }}</code></td>
+                    <td class="text-center">{{ item.qtd if item.qtd else '—' }}</td>
+                    <td class="text-center">{{ item.estoque }}</td>
+                    <td class="text-center">
+                        {% if item.situacao == 'ok' %}{{ item.estoque - item.qtd }}{% else %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if item.situacao == 'ok' %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Pronto para baixar</span>
+                        {% elif item.situacao == 'sem_estoque' %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle-fill"></i> Estoque insuficiente</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-question-circle-fill"></i> Quantidade não encontrada</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% set prontos = itens|selectattr('situacao', 'equalto', 'ok')|list %}
+
+    <div class="card-footer d-flex justify-content-between align-items-center">
+        <span class="small text-muted">
+            {{ prontos|length }} de {{ itens|length }} item(ns) serão baixados.
+            Itens com problema ficam de fora.
+        </span>
+        <form method="POST" action="{{ url_for('main.confirmar_pedido') }}">
+            <input type="hidden" name="hash" value="{{ arquivo_hash }}">
+            <input type="hidden" name="arquivo" value="{{ arquivo_nome }}">
+            {% for item in prontos %}
+                <input type="hidden" name="sku" value="{{ item.sku }}">
+                <input type="hidden" name="qtd" value="{{ item.qtd }}">
+            {% endfor %}
+            <button type="submit" class="btn btn-danger"
+                    {% if not prontos or ja_importado %}disabled{% endif %}>
+                <i class="bi bi-box-arrow-up-right"></i> Confirmar baixa no estoque
+            </button>
+        </form>
+    </div>
+
+    {% else %}
+    <div class="card-body text-center py-5">
+        <i class="bi bi-search display-1 text-muted"></i>
+        <p class="lead text-muted mt-3 mb-0">
+            Nenhum SKU cadastrado foi encontrado nesse PDF.
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+{% if ignoradas %}
+<details class="mb-4">
+    <summary class="text-muted small">
+        {{ ignoradas|length }} linha(s) do PDF sem SKU reconhecido (ignoradas)
+    </summary>
+    <ul class="small text-muted mt-2">
+        {% for linha in ignoradas[:30] %}
+            <li>{{ linha }}</li>
+        {% endfor %}
+        {% if ignoradas|length > 30 %}<li>… e mais {{ ignoradas|length - 30 }}.</li>{% endif %}
+    </ul>
+</details>
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

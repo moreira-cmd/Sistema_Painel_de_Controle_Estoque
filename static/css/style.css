@@ -1,0 +1,251 @@
+/* ============================================================
+   style.css — Estilos Customizados do ArtGlow
+   Complementam o Bootstrap 5, sem sobrescrever o essencial.
+   ============================================================ */
+
+/* --- Layout Geral --- */
+body {
+    background-color: #f0f2f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Empurra o rodapé para o fundo mesmo com pouco conteúdo */
+.container {
+    flex: 1;
+}
+
+/* --- Navbar --- */
+.navbar-brand {
+    font-size: 1.35rem;
+    letter-spacing: 0.5px;
+}
+
+.navbar .nav-link {
+    padding-right: 1rem !important;
+    padding-left: 1rem !important;
+    transition: background-color 0.2s ease;
+    border-radius: 4px;
+}
+
+.navbar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* --- Cards --- */
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card .card-header {
+    font-weight: 600;
+}
+
+/* Cards de métricas no dashboard */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-danger {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card.bg-primary:hover,
+.card.bg-success:hover,
+.card.bg-danger:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* --- Tabelas --- */
+.table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Destaque de linha para estoque baixo */
+.table-warning td {
+    background-color: #fff3cd !important;
+}
+
+/* --- Badges de Estoque --- */
+.badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* --- Formulários --- */
+.form-control:focus,
+.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.2);
+}
+
+.form-label {
+    margin-bottom: 0.3rem;
+}
+
+/* --- Botões --- */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.btn-lg {
+    padding: 0.6rem 1.5rem;
+}
+
+/* --- Paginação --- */
+.pagination .page-link {
+    color: #0d6efd;
+    border-radius: 6px;
+    margin: 0 2px;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* --- Rodapé --- */
+.footer {
+    margin-top: auto;
+}
+
+/* --- Ícones em display grande (página vazia) --- */
+.display-1.text-muted,
+.display-1.text-success {
+    opacity: 0.5;
+}
+
+/* --- Código inline (SKU) --- */
+code {
+    color: #d63384;
+    background-color: #f8f0f5;
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    font-size: 0.88em;
+}
+
+/* --- Alertas --- */
+.alert {
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.alert-success { border-left-color: #198754; }
+.alert-danger  { border-left-color: #dc3545; }
+.alert-warning { border-left-color: #ffc107; }
+.alert-info    { border-left-color: #0dcaf0; }
+
+
+/* ============================================================
+   TEMA ARTGLOW — fundo preto com detalhes brancos mínimos
+   (fica no fim do arquivo para sobrescrever as regras acima)
+   ============================================================ */
+body {
+    background-color: #000;
+    color: #f5f5f5;
+}
+
+/* Navbar e rodapé: pretos, com um fio branco sutil */
+.navbar {
+    background-color: #000 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+.navbar-brand {
+    font-weight: 300 !important;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+}
+.footer {
+    background-color: #000 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Cards: fundo quase preto e borda branca fina */
+.card {
+    background-color: #0a0a0a;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.card.bg-primary,
+.card.bg-success,
+.card.bg-danger {
+    background-color: #0a0a0a !important;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+}
+/* Mantém o alerta vermelho quando há estoque baixo */
+.card.bg-danger {
+    border-color: #dc3545 !important;
+}
+.card.bg-primary:hover,
+.card.bg-success:hover,
+.card.bg-danger:hover {
+    border-color: #fff;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.12) !important;
+}
+.card-footer {
+    background-color: transparent !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Ícones azuis dos títulos viram brancos */
+.text-primary {
+    color: #fff !important;
+}
+
+/* Botão principal: branco com texto preto */
+.btn-primary {
+    --bs-btn-bg: #fff;
+    --bs-btn-color: #000;
+    --bs-btn-border-color: #fff;
+    --bs-btn-hover-bg: #d9d9d9;
+    --bs-btn-hover-color: #000;
+    --bs-btn-hover-border-color: #d9d9d9;
+    --bs-btn-active-bg: #bfbfbf;
+    --bs-btn-active-color: #000;
+}
+
+/* Alerta de sucesso neutro (preto e branco) */
+.alert-success {
+    --bs-alert-bg: #0a0a0a;
+    --bs-alert-color: #fff;
+    --bs-alert-border-color: rgba(255, 255, 255, 0.2);
+    border-left-color: #fff;
+}
+
+/* SKU legível no fundo escuro */
+code {
+    color: #fff;
+    background-color: #1a1a1a;
+}
+
+
+/* ============================================================
+   ARTGLOW — logo, gráficos e importação de pedidos
+   ============================================================ */
+.logo-navbar {
+    height: 40px;
+    width: auto;
+}
+
+/* Área dos gráficos (o Chart.js precisa de uma altura definida) */
+.grafico-box {
+    position: relative;
+    height: 280px;
+}
+
+/* Campo de arquivo no tema escuro */
+.form-control[type="file"]::file-selector-button {
+    background-color: #1a1a1a;
+    color: #fff;
+    border: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+details summary {
+    cursor: pointer;
+}
