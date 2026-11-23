@@ -1,5 +1,5 @@
 /* ============================================================
-   style.css — Estilos Customizados do ArtGlow
+   style.css — Estilos Customizados do Painel de Controle de Estoque
    Complementam o Bootstrap 5, sem sobrescrever o essencial.
    ============================================================ */
 
@@ -143,7 +143,7 @@ code {
 
 
 /* ============================================================
-   TEMA ARTGLOW — fundo preto com detalhes brancos mínimos
+   TEMA ESCURO — fundo preto com detalhes brancos mínimos
    (fica no fim do arquivo para sobrescrever as regras acima)
    ============================================================ */
 body {
@@ -225,7 +225,7 @@ code {
 
 
 /* ============================================================
-   ARTGLOW — logo, gráficos e importação de pedidos
+   Logo, gráficos e importação de pedidos
    ============================================================ */
 .logo-navbar {
     height: 40px;

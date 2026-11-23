@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Ambientes virtuais
+venv/
+.venv/
+env/
+
+# Banco de dados local (recriado automaticamente pelo init_db ao rodar app.py)
+*.db
+
+# Editor / sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
